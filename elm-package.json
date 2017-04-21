@@ -1,7 +1,7 @@
 {
   "version": "0.0.1",
   "summary": "helpful summary of your project, less than 80 characters",
-  "repository": "https://github.com/stoeffel/debug_view.git",
+  "repository": "https://github.com/stoeffel/debug-view.git",
   "license": "BSD3",
   "source-directories": [
     "./src"
