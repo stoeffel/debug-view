@@ -160,55 +160,110 @@ entry identifier index log =
             , ( "width", "400px" )
             ]
         ]
-        [ multilineLog log ]
+        [ renderElmType 0 log ]
 
 
-multilineLog : ElmType -> Html msg
-multilineLog log =
-    case log of
-        ElmFunction name ->
-            Html.text <| "Function " ++ name
+renderElmType : Int -> ElmType -> Html msg
+renderElmType indentation log =
+    let
+        newIndentation =
+            indentation + 1
+    in
+        case log of
+            ElmFunction name ->
+                Html.text <| "Function " ++ name
 
-        ElmBoolean bool ->
-            Html.text (toString bool)
+            ElmBoolean bool ->
+                Html.text (toString bool)
 
-        ElmNumber num ->
-            Html.text num
+            ElmNumber num ->
+                Html.text num
 
-        ElmList xs ->
-            Html.text (toString xs)
+            ElmList xs ->
+                renderListLike newIndentation "[" "]" xs
 
-        ElmTuple xs ->
-            Html.text (toString xs)
+            ElmTuple xs ->
+                renderListLike newIndentation "(" ")" xs
 
-        ElmArray xs ->
-            Html.text (toString xs)
+            ElmArray xs ->
+                renderListLike newIndentation "Array.fromList [" "]" xs
 
-        ElmSet xs ->
-            Html.text (toString xs)
+            ElmSet xs ->
+                renderListLike newIndentation "Set.fromList [" "]" xs
 
-        ElmDict dict ->
-            Html.text (toString dict)
+            ElmDict xs ->
+                renderListLike newIndentation "Dict.fromList [" "]" xs
 
-        ElmRecord values ->
-            Html.text (toString values)
+            ElmRecord [] ->
+                Html.div [] [ indentText indentation "{}" ]
 
-        ElmChar char ->
-            Html.text <| "'" ++ (String.fromChar char) ++ "'"
+            ElmRecord (x :: xs) ->
+                Html.div []
+                    [ Html.div []
+                        [ renderField newIndentation "{ " x
+                        ]
+                    , List.map (renderField newIndentation ", ") xs
+                        |> Html.div []
+                    , indentText newIndentation "}"
+                    ]
 
-        ElmString string ->
-            Html.text string
+            ElmChar char ->
+                Html.text <| "'" ++ (String.fromChar char) ++ "'"
 
-        ElmCustom something ->
-            Html.text something
+            ElmString string ->
+                Html.text string
+
+            ElmCustom something ->
+                Html.text something
 
 
-indentText : String -> List (Html msg)
-indentText text =
-    text
-        |> String.split "{%INDENTATION%}"
-        |> List.map Html.text
-        |> List.intersperse nbsp
+renderListLike : Int -> String -> String -> List ElmType -> Html msg
+renderListLike indentation open close items =
+    case items of
+        [] ->
+            Html.text (open ++ close)
+
+        x :: xs ->
+            Html.div []
+                [ Html.div []
+                    [ Html.span [] [ indentText indentation (open ++ " "), renderElmType indentation x ]
+                    ]
+                , List.map (renderListItem indentation << renderElmType indentation) xs
+                    |> Html.div []
+                , indentText indentation close
+                ]
+
+
+renderList : Int -> List ElmType -> Html msg
+renderList indentation xs =
+    List.map (renderElmType indentation) xs
+        |> List.intersperse (indentText indentation ", ")
+        |> Html.div []
+
+
+renderField : Int -> String -> ( String, ElmType ) -> Html msg
+renderField indentation prefix ( k, v ) =
+    Html.div []
+        [ indentText indentation (prefix ++ k ++ " = ")
+        , renderElmType (indentation) v
+        ]
+
+
+renderListItem : Int -> Html msg -> Html msg
+renderListItem indentation item =
+    Html.div []
+        [ indentText indentation ", "
+        , item
+        ]
+
+
+indentText : Int -> String -> Html msg
+indentText indentation text =
+    [ List.repeat indentation nbsp
+    , [ Html.text text ]
+    ]
+        |> List.concat
+        |> Html.span []
 
 
 nbsp : Html msg

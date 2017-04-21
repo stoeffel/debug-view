@@ -4,6 +4,7 @@
 
 module Main exposing (..)
 
+import Dict
 import Html exposing (beginnerProgram, div, button, text, input)
 import Html.Events exposing (onClick, onInput)
 import Html.Attributes exposing (defaultValue, style)
@@ -25,6 +26,10 @@ main =
                 { animals = [ Bird, Bird, Bird, Bird, Bird, Bird, Bird ]
                 , bar = 4
                 }
+            , fn = toString
+            , empty = []
+            , tup = ( 1, 2, 3, 4, 5 )
+            , d = Dict.fromList [ ( 1, "a" ), ( 2, "b" ) ]
             }
         , view = view
         , update = update

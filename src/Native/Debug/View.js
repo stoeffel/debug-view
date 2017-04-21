@@ -31,7 +31,6 @@ var _stoeffel$debug_view$Native_Debug = (function() {
       requestAnimationFrame(addClickHandlers);
     }
     var entry = toString(a, 0);
-    console.log(entry);
     if (JSON.stringify(log[id][log[id].length - 1]) === JSON.stringify(entry)) {
       return _elm_lang$core$Native_List.fromArray(log[id]);
     }
@@ -52,27 +51,27 @@ var _stoeffel$debug_view$Native_Debug = (function() {
     if (type === "function") {
       var name = v.func ? v.func.name : v.name;
       return {
-        ctor: 'ElmFunction',
+        ctor: "ElmFunction",
         _0: name
       };
     } else if (type === "boolean") {
       return {
-        ctor: 'ElmBoolean',
+        ctor: "ElmBoolean",
         _0: v
       };
     } else if (type === "number") {
       return {
-        ctor: 'ElmNumber',
+        ctor: "ElmNumber",
         _0: "" + v
       };
     } else if (v instanceof String && v.isChar) {
       return {
-        ctor: 'ElmChar',
+        ctor: "ElmChar",
         _0: v
       };
     } else if (type === "string") {
       return {
-        ctor: 'ElmString',
+        ctor: "ElmString",
         _0: v
       };
     } else if (type === "object" && "ctor" in v) {
@@ -83,23 +82,23 @@ var _stoeffel$debug_view$Native_Debug = (function() {
           output.push(toString(v[k]));
         }
         return {
-          ctor: 'ElmTuple',
+          ctor: "ElmTuple",
           _0: _elm_lang$core$Native_List.fromArray(output)
         };
       } else if (v.ctor === "_Array") {
         var list = _elm_lang$core$Array.toList(v);
         return {
-          ctor: 'ElmArray',
+          ctor: "ElmArray",
           _0: listToString(list)
         };
       } else if (v.ctor === "::") {
         return {
-          ctor: 'ElmList',
+          ctor: "ElmList",
           _0: listToString(v)
         };
       } else if (v.ctor === "[]") {
         return {
-          ctor: 'ElmList',
+          ctor: "ElmList",
           _0: listToString(v)
         };
       } else if (
@@ -116,31 +115,31 @@ var _stoeffel$debug_view$Native_Debug = (function() {
             function(x) {
               return x._0;
             },
-            _elm_lang$core$Dict.toList(v._0)
+            _elm_lang$core$Dict$toList(v._0)
           );
         } else {
           name = "Dict";
-          list = _elm_lang$core$Dict.toList(v);
+          list = _elm_lang$core$Dict$toList(v);
         }
         return {
-          ctor: 'Elm' + name,
+          ctor: "Elm" + name,
           _0: listToString(list)
-        }
+        };
       } else if (v.ctor.slice(0, 5) === "Text:") {
         return {
-          ctor: 'ElmCustom',
+          ctor: "ElmCustom",
           _0: "<text>"
-        }
+        };
       } else if (v.ctor === "Element_elm_builtin") {
         return {
-          ctor: 'ElmCustom',
+          ctor: "ElmCustom",
           _0: "<element>"
-        }
+        };
       } else if (v.ctor === "Form_elm_builtin") {
         return {
-          ctor: 'ElmCustom',
+          ctor: "ElmCustom",
           _0: "<form>"
-        }
+        };
       } else {
         var output = "";
         for (var i in v) {
@@ -152,30 +151,27 @@ var _stoeffel$debug_view$Native_Debug = (function() {
           output += " " + (parenless ? str : "(" + str + ")");
         }
         return {
-          ctor: 'ElmCustom',
+          ctor: "ElmCustom",
           _0: v.ctor + output
-        }
+        };
       }
     } else if (type === "object" && "notify" in v && "id" in v) {
       return {
-        ctor: 'ElmCustom',
+        ctor: "ElmCustom",
         _0: "<signal>"
-      }
+      };
     } else if (type === "object") {
       var output = [];
       for (var k in v) {
-        output.push(_elm_lang$core$Native_Utils.Tuple2(
-          k,
-          toString(v[k])
-        ));
+        output.push(_elm_lang$core$Native_Utils.Tuple2(k, toString(v[k])));
       }
       return {
-        ctor: 'ElmRecord',
+        ctor: "ElmRecord",
         _0: _elm_lang$core$Native_List.fromArray(output)
-      }
+      };
     }
     return {
-      ctor: 'ElmCustom',
+      ctor: "ElmCustom",
       _0: "<internal structure>"
     };
   }
@@ -183,7 +179,7 @@ var _stoeffel$debug_view$Native_Debug = (function() {
   function listToString(v) {
     var output = [];
     while (v.ctor === "::") {
-      output.push(toString(v._0))
+      output.push(toString(v._0));
       v = v._1;
     }
     return _elm_lang$core$Native_List.fromArray(output);
