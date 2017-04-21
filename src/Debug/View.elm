@@ -2,7 +2,7 @@ module Debug.View exposing (inspect, inspect2)
 
 import Native.Debug.View
 import Html exposing (Html)
-import Html.Attributes exposing (style, id, property)
+import Html.Attributes exposing (style, id, attribute, property)
 import Json.Encode exposing (string)
 
 
@@ -198,8 +198,13 @@ renderElmType indentation log =
                 Html.div [] [ indentText indentation "{}" ]
 
             ElmRecord (x :: xs) ->
-                Html.div []
-                    [ Html.div []
+                Html.span []
+                    [ Html.button
+                        [ style [ ( "display", "inline" ) ]
+                        , attribute "onclick" "window._elmRenderVisualizerToggleCollapse(this);"
+                        ]
+                        [ Html.text ">" ]
+                    , Html.div []
                         [ renderField newIndentation "{ " x
                         ]
                     , List.map (renderField newIndentation ", ") xs

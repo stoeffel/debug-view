@@ -200,3 +200,6 @@ var _stoeffel$debug_view$Native_Debug = (function() {
     }
   }
 })();
+window._elmRenderVisualizerToggleCollapse = function(e) {
+  console.log(e.parentNode);
+};
