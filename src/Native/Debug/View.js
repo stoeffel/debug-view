@@ -1,5 +1,5 @@
 //import Native.Utils //
-var _NoRedInk$noredink$Native_Debug_View = (function() {
+var _stoeffel$debug_view$Native_Debug_View = (function() {
   var log = {};
   var clickHandlers = {};
   function inspect(a, id) {
@@ -135,14 +135,9 @@ var _NoRedInk$noredink$Native_Debug_View = (function() {
           _0: "<form>"
         };
       } else {
-        var output = [];
-        for (var k in v) {
-          if (k === "ctor") continue;
-          output.push(_elm_lang$core$Native_Utils.Tuple2(k, toString(v[k])));
-        }
         return {
-          ctor: "ElmCustom",
-          _0: _elm_lang$core$Native_List.fromArray(output)
+          ctor: "ElmString",
+          _0: v.ctor
         };
       }
     } else if (type === "object" && "notify" in v && "id" in v) {

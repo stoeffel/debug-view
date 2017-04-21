@@ -225,7 +225,14 @@ renderElmType =
 type Tree
     = ListItem String
     | KeyValue ( String, Tree )
-    | Block String String (List Tree)
+    | Block BlockData (List Tree)
+
+
+type alias BlockData =
+    { open : String
+    , close : String
+    , empty : String
+    }
 
 
 elmTypeToTree : ElmType -> Tree
@@ -241,25 +248,61 @@ elmTypeToTree log =
             ListItem num
 
         ElmList xs ->
-            Block "[" "]" <| List.map elmTypeToTree xs
+            Block
+                { open = "["
+                , close = "]"
+                , empty = "[]"
+                }
+            <|
+                List.map elmTypeToTree xs
 
         ElmTuple xs ->
-            Block "(" ")" <| List.map elmTypeToTree xs
+            Block
+                { open = "("
+                , close = ")"
+                , empty = "()"
+                }
+            <|
+                List.map elmTypeToTree xs
 
         ElmArray xs ->
-            Block "Array.fromList [" "]" <| List.map elmTypeToTree xs
+            Block
+                { open = "Array.fromList ["
+                , close = "]"
+                , empty = "Array.empty"
+                }
+            <|
+                List.map elmTypeToTree xs
 
         ElmSet xs ->
-            Block "Set.fromList [" "]" <| List.map elmTypeToTree xs
+            Block
+                { open = "Set.fromList ["
+                , close = "]"
+                , empty = "Set.empty"
+                }
+            <|
+                List.map elmTypeToTree xs
 
         ElmDict xs ->
-            Block "Dict.fromList [" "]" <| List.map elmTypeToTree xs
+            Block
+                { open = "Dict.fromList ["
+                , close = "]"
+                , empty = "Dict.empty"
+                }
+            <|
+                List.map elmTypeToTree xs
 
         ElmRecord [] ->
             ListItem "{}"
 
         ElmRecord xs ->
-            Block "{" "}" <| List.map (\( k, v ) -> KeyValue ( k, elmTypeToTree v )) xs
+            Block
+                { open = "{"
+                , close = "}"
+                , empty = "{}"
+                }
+            <|
+                List.map (\( k, v ) -> KeyValue ( k, elmTypeToTree v )) xs
 
         ElmChar char ->
             ListItem <| String.fromChar char
@@ -280,7 +323,10 @@ treeToText t =
         KeyValue ( k, v ) ->
             k ++ " = " ++ treeToText v
 
-        Block open close xs ->
+        Block { empty } [] ->
+            empty
+
+        Block { open, close } xs ->
             [ open
             , List.intersperse (ListItem ", ") xs
                 |> List.map treeToText
@@ -308,22 +354,22 @@ treeToHtml t =
                 , treeToHtml v
                 ]
 
-        Block open close xs ->
+        Block blockData xs ->
             Html.span
                 [ class "elm-debug-view-collapsed"
                 , attribute "onclick" "_elmRenderVisualizerToggleCollapse(this);"
                 ]
                 [ Html.span [ class "elm-debug-view-text" ] [ Html.text <| treeToText t ]
-                , renderItems open close xs
+                , renderItems blockData xs
                     |> Html.div [ class "elm-debug-view-detailed" ]
                 ]
 
 
-renderItems : String -> String -> List Tree -> List (Html msg)
-renderItems open close xs =
+renderItems : BlockData -> List Tree -> List (Html msg)
+renderItems { open, close, empty } xs =
     case List.map treeToHtml xs of
         [] ->
-            [ Html.text (open ++ close) ]
+            [ Html.text empty ]
 
         head :: tail ->
             List.concat
