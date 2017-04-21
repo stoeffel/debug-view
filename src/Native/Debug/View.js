@@ -1,5 +1,5 @@
 //import Native.Utils //
-var _stoeffel$debug_view$Native_Debug = (function() {
+var _stoeffel$debug_view$Native_Debug_View = (function() {
   var log = {};
   var clickHandlers = {};
   function inspect(a, id) {

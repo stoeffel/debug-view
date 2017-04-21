@@ -10,7 +10,7 @@ inspect identifier view x =
     contentSpan
         (view x
             :: (wrapper identifier <|
-                    Native.Debug.inspect x identifier
+                    Native.Debug.View.inspect x identifier
                )
         )
 
@@ -20,7 +20,7 @@ inspect2 identifier view x y =
     contentSpan
         (view x y
             :: (wrapper identifier <|
-                    Native.Debug.inspect2 x y identifier
+                    Native.Debug.View.inspect2 x y identifier
                )
         )
 
