@@ -3,7 +3,6 @@ module Debug.View exposing (inspect, inspect2)
 import Native.Debug.View
 import Html exposing (Html)
 import Html.Attributes exposing (style, id, attribute, property, class)
-import Json.Encode exposing (string)
 
 
 inspect : String -> (a -> Html msg) -> a -> Html msg
@@ -41,8 +40,24 @@ css =
         padding-left: 2em;
     }
 
+    .elm-render-visualizer-collapsed {
+        display: flex;
+    }
     .elm-render-visualizer-collapsed .elm-render-visualizer-indent-block {
         display: flex;
+        padding-left: 0px;
+    }
+    .elm-render-visualizer-collapsed .elm-render-visualizer-indent-block:first-child {
+        padding-left: 10px;
+    }
+
+    .elm-render-visualizer-collapsed .elm-render-visualizer-flex {
+        display: flex;
+        white-space: nowrap;
+    }
+
+    .elm-render-visualizer-collapsed span {
+        white-space: nowrap;
     }
 """
 
@@ -181,8 +196,11 @@ entry identifier index log =
             [ ( "list-style", "none" )
             , ( "width", "400px" )
             ]
+        , class "elm-render-visualizer-collapsed"
         ]
-        [ renderElmType log ]
+        [ Html.text (toString index)
+        , renderElmType log
+        ]
 
 
 renderElmType : ElmType -> Html msg
@@ -216,7 +234,9 @@ renderElmType log =
             Html.text "{}"
 
         ElmRecord (x :: xs) ->
-            Html.div [ style [ ( "position", "relative" ) ] ]
+            Html.div
+                [ style [ ( "position", "relative" ) ]
+                ]
                 [ Html.button
                     [ style
                         [ ( "display", "inline" )
@@ -267,8 +287,8 @@ renderList xs =
 
 renderField : String -> ( String, ElmType ) -> Html msg
 renderField prefix ( k, v ) =
-    Html.div []
-        [ Html.text (prefix ++ k ++ " = ")
+    Html.div [ class "elm-render-visualizer-flex" ]
+        [ Html.span [] [ Html.text (prefix ++ k ++ " = ") ]
         , renderElmType v
         ]
 
