@@ -129,7 +129,7 @@ var _stoeffel$debug_view$Native_Debug = (function() {
       if (output.length === 0) {
         return "{}";
       }
-      return "{ " + output.join(", ") + " }";
+      return "{ " + output.join("{%NEWLINE%}, ") + "{%NEWLINE%}}";
     }
     return "<internal structure>";
   }

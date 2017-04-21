@@ -21,6 +21,10 @@ main =
             { counter = 0
             , by = 1
             , animals = [ Bird, Bird, Bird, Bird, Bird, Bird, Bird ]
+            , foo =
+                { animals = [ Bird, Bird, Bird, Bird, Bird, Bird, Bird ]
+                , bar = 4
+                }
             }
         , view = view
         , update = update

@@ -144,4 +144,12 @@ entry identifier index log =
             , ( "width", "400px" )
             ]
         ]
-        [ Html.text (toString (index + 1) ++ ": " ++ log) ]
+        (multilineLog log)
+
+
+multilineLog : String -> List (Html msg)
+multilineLog log =
+    log
+        |> String.split "{%NEWLINE%}"
+        |> List.map (Html.text >> List.singleton >> Html.span [])
+        |> List.intersperse (Html.br [] [])
