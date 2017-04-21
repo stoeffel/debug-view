@@ -199,7 +199,13 @@ entry identifier index log =
             , ( "text-overflow", "ellipsis" )
             ]
         ]
-        [ Html.text (toString index ++ ": ")
+        [ Html.span
+            [ style
+                [ ( "display", "flex" )
+                , ( "opacity", ".5" )
+                ]
+            ]
+            [ Html.text (toString index), Html.hr [ style [ ( "flex", "1" ) ] ] [] ]
         , renderElmType log
         ]
 
@@ -285,7 +291,13 @@ treeToHtml t =
 
         KeyValue ( k, v ) ->
             Html.span []
-                [ Html.text <| k ++ " = "
+                [ Html.span []
+                    [ Html.span
+                        [ style [ ( "color", "#c7f465" ) ]
+                        ]
+                        [ Html.text k ]
+                    , Html.span [] [ Html.text " = " ]
+                    ]
                 , treeToHtml v
                 ]
 
