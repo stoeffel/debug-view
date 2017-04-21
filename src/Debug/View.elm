@@ -195,6 +195,8 @@ entry identifier index log =
         [ style
             [ ( "list-style", "none" )
             , ( "width", "400px" )
+            , ( "overflow", "hidden" )
+            , ( "text-overflow", "ellipsis" )
             ]
         ]
         [ Html.text (toString index ++ ": ")
