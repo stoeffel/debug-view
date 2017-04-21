@@ -233,6 +233,7 @@ type alias BlockData =
     { open : String
     , close : String
     , empty : String
+    , separator : String
     }
 
 
@@ -253,6 +254,7 @@ elmTypeToTree log =
                 { open = "["
                 , close = "]"
                 , empty = "[]"
+                , separator = ", "
                 }
             <|
                 List.map elmTypeToTree xs
@@ -262,6 +264,7 @@ elmTypeToTree log =
                 { open = "("
                 , close = ")"
                 , empty = "()"
+                , separator = ", "
                 }
             <|
                 List.map elmTypeToTree xs
@@ -271,6 +274,7 @@ elmTypeToTree log =
                 { open = "Array.fromList ["
                 , close = "]"
                 , empty = "Array.empty"
+                , separator = ", "
                 }
             <|
                 List.map elmTypeToTree xs
@@ -280,6 +284,7 @@ elmTypeToTree log =
                 { open = "Set.fromList ["
                 , close = "]"
                 , empty = "Set.empty"
+                , separator = ", "
                 }
             <|
                 List.map elmTypeToTree xs
@@ -289,6 +294,7 @@ elmTypeToTree log =
                 { open = "Dict.fromList ["
                 , close = "]"
                 , empty = "Dict.empty"
+                , separator = ", "
                 }
             <|
                 List.map elmTypeToTree xs
@@ -301,6 +307,7 @@ elmTypeToTree log =
                 { open = "{"
                 , close = "}"
                 , empty = "{}"
+                , separator = ", "
                 }
             <|
                 List.map (\( k, v ) -> KeyValue ( k, elmTypeToTree v )) xs
@@ -315,13 +322,14 @@ elmTypeToTree log =
             ListItem something
 
         ElmUnionType ctor args ->
-            ListItem
-                (ctor
-                    ++ " "
-                    ++ (String.join " " <|
-                            List.map (elmTypeToTree >> treeToText) args
-                       )
-                )
+            Block
+                { open = ctor ++ " "
+                , close = ""
+                , empty = ctor
+                , separator = " "
+                }
+            <|
+                List.map elmTypeToTree args
 
 
 treeToText : Tree -> String
@@ -336,9 +344,9 @@ treeToText t =
         Block { empty } [] ->
             empty
 
-        Block { open, close } xs ->
+        Block { open, close, separator } xs ->
             [ open
-            , List.intersperse (ListItem ", ") xs
+            , List.intersperse (ListItem separator) xs
                 |> List.map treeToText
                 |> String.concat
             , close
@@ -376,7 +384,7 @@ treeToHtml t =
 
 
 renderItems : BlockData -> List Tree -> List (Html msg)
-renderItems { open, close, empty } xs =
+renderItems { open, close, empty, separator } xs =
     case List.map treeToHtml xs of
         [] ->
             [ Html.text empty ]
@@ -384,7 +392,7 @@ renderItems { open, close, empty } xs =
         head :: tail ->
             List.concat
                 [ [ nowrap [ Html.text <| open ++ " ", head ] ]
-                , List.map (\tree -> nowrap [ Html.text ", ", tree ]) tail
+                , List.map (\tree -> nowrap [ Html.text separator, tree ]) tail
                 , [ Html.div [] [ Html.text close ] ]
                 ]
 
