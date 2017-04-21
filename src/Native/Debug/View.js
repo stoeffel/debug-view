@@ -48,6 +48,7 @@ var _stoeffel$debug_view$Native_Debug = (function() {
 
   // This is a modified version of toString from elm core: https://github.com/elm-lang/core/blob/3.0.0/src/Native/Utils.js#L358
   function toString(v, indentation) {
+    var indent = "{%INDENTATION%}".repeat(indentation);
     var type = typeof v;
     if (type === "function") {
       var name = v.func ? v.func.name : v.name;
@@ -72,13 +73,19 @@ var _stoeffel$debug_view$Native_Debug = (function() {
         var list = _elm_lang$core$Array.toList(v);
         return "Array.fromList " + toString(list, indentation + 1);
       } else if (v.ctor === "::") {
-        var output = "[" + toString(v._0, indentation + 1);
+        var output = "{%NEWLINE%}" +
+          indent +
+          "[ " +
+          toString(v._0, indentation + 1);
         v = v._1;
         while (v.ctor === "::") {
-          output += "," + toString(v._0, indentation + 1);
+          output += "{%NEWLINE%}" +
+            indent +
+            ", " +
+            toString(v._0, indentation + 1);
           v = v._1;
         }
-        return output + "]";
+        return output + "{%NEWLINE%}" + indent + "]";
       } else if (v.ctor === "[]") {
         return "[]";
       } else if (
@@ -130,7 +137,6 @@ var _stoeffel$debug_view$Native_Debug = (function() {
       if (output.length === 0) {
         return "{}";
       }
-      var indent = "{%INDENTATION%}".repeat(indentation);
       return "{%NEWLINE%}" +
         indent +
         "{ " +
