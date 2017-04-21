@@ -201,8 +201,9 @@ var _stoeffel$debug_view$Native_Debug = (function() {
   }
 })();
 window._elmRenderVisualizerToggleCollapse = function(e) {
-  var cls = "elm-render-visualizer-expanded";
+  var cls = "elm-render-visualizer-collapsed";
   toggleClassElmRenderVisualizer(e, cls);
+  window.event.stopPropagation();
 };
 function toggleClassElmRenderVisualizer(element, className) {
   if (!element || !className) {

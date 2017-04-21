@@ -36,52 +36,23 @@ stylesheet =
 css : String
 css =
     """
-    .elm-render-visualizer-ellipsis {
+    .elm-render-visualizer-text {
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
-    }
-
-    .elm-render-visualizer-expanded {
-        text-overflow: none;
-        white-space: nowrap;
-        overflow: scroll;
-    }
-
-    .elm-render-visualizer-expanded .elm-render-visualizer-text {
         display: none;
     }
 
-    .elm-render-visualizer-detailed {
-        display: none;
-    }
-
-    .elm-render-visualizer-expanded .elm-render-visualizer-detailed {
+    .elm-render-visualizer-collapsed .elm-render-visualizer-text {
         display: block;
     }
 
-    .elm-render-visualizer-indent-block {
+    .elm-render-visualizer-detailed {
         padding-left: 2em;
     }
 
-    .elm-render-visualizer-collapsed {
-        display: flex;
-    }
-    .elm-render-visualizer-collapsed .elm-render-visualizer-indent-block {
-        display: flex;
-        padding-left: 0px;
-    }
-    .elm-render-visualizer-collapsed .elm-render-visualizer-indent-block:first-child {
-        padding-left: 10px;
-    }
-
-    .elm-render-visualizer-collapsed .elm-render-visualizer-flex {
-        display: flex;
-        white-space: nowrap;
-    }
-
-    .elm-render-visualizer-collapsed span {
-        white-space: nowrap;
+    .elm-render-visualizer-collapsed .elm-render-visualizer-detailed {
+        display: none;
     }
 """
 
@@ -313,65 +284,24 @@ treeToHtml t =
 
         Block open close xs ->
             Html.div
-                [ class "elm-render-visualizer-ellipsis"
+                [ class "elm-render-visualizer-collapsed"
                 , attribute "onclick" "_elmRenderVisualizerToggleCollapse(this);"
                 ]
                 [ Html.span [ class "elm-render-visualizer-text" ] [ Html.text <| treeToText t ]
-                , [ [ Html.text open ]
-                  , List.intersperse (ListItem ", ") xs
-                        |> List.map treeToHtml
-                  , [ Html.text close ]
-                  ]
-                    |> List.concat
+                , renderItems open close xs
                     |> Html.span [ class "elm-render-visualizer-detailed" ]
                 ]
 
 
-renderListLike : String -> String -> List ElmType -> Html msg
-renderListLike open close items =
-    case items of
+renderItems : String -> String -> List Tree -> List (Html msg)
+renderItems open close xs =
+    case List.map treeToHtml xs of
         [] ->
-            Html.text (open ++ close)
+            [ Html.text (open ++ close) ]
 
-        x :: xs ->
-            indentBlock <|
-                List.concat
-                    [ [ nowrap [ Html.text (open ++ " "), renderElmType x ] ]
-                    , List.map (renderListItem << renderElmType) xs
-                    , [ Html.text close ]
-                    ]
-
-
-renderList : List ElmType -> Html msg
-renderList xs =
-    List.map renderElmType xs
-        |> List.intersperse (Html.text ", ")
-        |> Html.div []
-
-
-renderField : String -> ( String, ElmType ) -> Html msg
-renderField prefix ( k, v ) =
-    Html.div [ class "elm-render-visualizer-flex" ]
-        [ Html.span [] [ Html.text (prefix ++ k ++ " = ") ]
-        , renderElmType v
-        ]
-
-
-renderListItem : Html msg -> Html msg
-renderListItem item =
-    nowrap
-        [ Html.text ", "
-        , item
-        ]
-
-
-nowrap : List (Html msg) -> Html msg
-nowrap =
-    Html.div [ style [ ( "white-space", "nowrap" ) ] ]
-
-
-indentBlock : List (Html msg) -> Html msg
-indentBlock children =
-    Html.div
-        [ class "elm-render-visualizer-indent-block" ]
-        children
+        head :: tail ->
+            List.concat
+                [ [ Html.div [] [ Html.text <| open ++ " ", head ] ]
+                , List.map (\tree -> Html.div [] [ Html.text ", ", tree ]) tail
+                , [ Html.div [] [ Html.text close ] ]
+                ]
