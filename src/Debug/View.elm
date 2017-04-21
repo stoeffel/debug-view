@@ -199,6 +199,7 @@ type ElmType
     | ElmChar Char
     | ElmString String
     | ElmCustom String
+    | ElmUnionType String (List ElmType)
 
 
 entry : String -> Int -> ElmType -> Html msg
@@ -305,13 +306,22 @@ elmTypeToTree log =
                 List.map (\( k, v ) -> KeyValue ( k, elmTypeToTree v )) xs
 
         ElmChar char ->
-            ListItem <| String.fromChar char
+            ListItem <| ("'" ++ String.fromChar char ++ "'")
 
         ElmString string ->
-            ListItem string
+            ListItem ("\"" ++ string ++ "\"")
 
         ElmCustom something ->
             ListItem something
+
+        ElmUnionType ctor args ->
+            ListItem
+                (ctor
+                    ++ " "
+                    ++ (String.join " " <|
+                            List.map (elmTypeToTree >> treeToText) args
+                       )
+                )
 
 
 treeToText : Tree -> String

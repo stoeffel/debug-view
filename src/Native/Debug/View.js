@@ -135,9 +135,15 @@ var _stoeffel$debug_view$Native_Debug_View = (function() {
           _0: "<form>"
         };
       } else {
+        var output = [];
+        for (var k in v) {
+          if (k === "ctor") continue;
+          output.push(toString(v[k]));
+        }
         return {
-          ctor: "ElmString",
-          _0: v.ctor
+          ctor: "ElmUnionType",
+          _0: v.ctor,
+          _1: _elm_lang$core$Native_List.fromArray(output)
         };
       }
     } else if (type === "object" && "notify" in v && "id" in v) {

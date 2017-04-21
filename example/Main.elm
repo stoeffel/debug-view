@@ -12,8 +12,13 @@ import Debug.View
 
 
 type Animal
-    = Dog
+    = Dog String Size
     | Bird
+
+
+type Size
+    = Small
+    | Big
 
 
 main =
@@ -21,7 +26,7 @@ main =
         { model =
             { counter = 0
             , by = 1
-            , animals = [ Bird, Bird, Bird, Bird, Bird, Bird, Bird ]
+            , animals = [ Dog "doggy" Big, Bird, Bird, Bird, Bird, Bird, Bird, Bird ]
             , foo =
                 { animals = [ Bird, Bird, Bird, Bird, Bird, Bird, Bird ]
                 , bar = 4
