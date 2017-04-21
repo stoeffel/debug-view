@@ -1,5 +1,5 @@
 //import Native.Utils //
-var _stoeffel$debug_view$Native_Debug_View = (function() {
+var _NoRedInk$noredink$Native_Debug_View = (function() {
   var log = {};
   var clickHandlers = {};
   function inspect(a, id) {
@@ -110,13 +110,7 @@ var _stoeffel$debug_view$Native_Debug_View = (function() {
         var name;
         if (v.ctor === "Set_elm_builtin") {
           name = "Set";
-          list = A2(
-            _elm_lang$core$List.map,
-            function(x) {
-              return x._0;
-            },
-            _elm_lang$core$Dict$toList(v._0)
-          );
+          list = _elm_lang$core$Dict$toList(v._0);
         } else {
           name = "Dict";
           list = _elm_lang$core$Dict$toList(v);
@@ -141,18 +135,14 @@ var _stoeffel$debug_view$Native_Debug_View = (function() {
           _0: "<form>"
         };
       } else {
-        var output = "";
-        for (var i in v) {
-          if (i === "ctor") continue;
-          var str = toString(v[i]);
-          var parenless = str[0] === "{" ||
-            str[0] === "<" ||
-            str.indexOf(" ") < 0;
-          output += " " + (parenless ? str : "(" + str + ")");
+        var output = [];
+        for (var k in v) {
+          if (k === "ctor") continue;
+          output.push(_elm_lang$core$Native_Utils.Tuple2(k, toString(v[k])));
         }
         return {
           ctor: "ElmCustom",
-          _0: v.ctor + output
+          _0: _elm_lang$core$Native_List.fromArray(output)
         };
       }
     } else if (type === "object" && "notify" in v && "id" in v) {
