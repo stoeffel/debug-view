@@ -160,7 +160,7 @@ entry identifier index log =
             , ( "width", "400px" )
             ]
         ]
-        [ renderElmType 0 log ]
+        [ renderElmType -1 log ]
 
 
 renderElmType : Int -> ElmType -> Html msg
