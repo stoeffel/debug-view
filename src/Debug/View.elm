@@ -36,15 +36,20 @@ stylesheet =
 css : String
 css =
     """
+    .elm-render-visualizer-ellipsis,
     .elm-render-visualizer-text {
+        white-space: nowrap;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
+    }
+
+    .elm-render-visualizer-text {
         display: none;
     }
 
     .elm-render-visualizer-collapsed .elm-render-visualizer-text {
-        display: block;
+        display: inline;
     }
 
     .elm-render-visualizer-detailed {
@@ -283,13 +288,13 @@ treeToHtml t =
                 ]
 
         Block open close xs ->
-            Html.div
+            Html.span
                 [ class "elm-render-visualizer-collapsed"
                 , attribute "onclick" "_elmRenderVisualizerToggleCollapse(this);"
                 ]
                 [ Html.span [ class "elm-render-visualizer-text" ] [ Html.text <| treeToText t ]
                 , renderItems open close xs
-                    |> Html.span [ class "elm-render-visualizer-detailed" ]
+                    |> Html.div [ class "elm-render-visualizer-detailed" ]
                 ]
 
 
@@ -301,7 +306,12 @@ renderItems open close xs =
 
         head :: tail ->
             List.concat
-                [ [ Html.div [] [ Html.text <| open ++ " ", head ] ]
-                , List.map (\tree -> Html.div [] [ Html.text ", ", tree ]) tail
+                [ [ nowrap [ Html.text <| open ++ " ", head ] ]
+                , List.map (\tree -> nowrap [ Html.text ", ", tree ]) tail
                 , [ Html.div [] [ Html.text close ] ]
                 ]
+
+
+nowrap : List (Html msg) -> Html msg
+nowrap children =
+    Html.div [ class "elm-render-visualizer-ellipsis" ] children
