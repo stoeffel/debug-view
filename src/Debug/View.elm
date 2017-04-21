@@ -61,14 +61,14 @@ styles { radius, border, inverse } =
     ]
 
 
-wrapper : String -> List String -> List (Html msg)
+wrapper : String -> List ElmType -> List (Html msg)
 wrapper identifier history =
     [ counter identifier <| List.length history
     , entries identifier history
     ]
 
 
-entries : String -> List String -> Html msg
+entries : String -> List ElmType -> Html msg
 entries identifier history =
     Html.div
         [ style <|
@@ -137,7 +137,22 @@ counter identifier index =
         [ Html.text <| toString index ]
 
 
-entry : String -> Int -> String -> Html msg
+type ElmType
+    = ElmFunction String
+    | ElmBoolean Bool
+    | ElmNumber String
+    | ElmList (List ElmType)
+    | ElmTuple (List ElmType)
+    | ElmArray (List ElmType)
+    | ElmSet (List ElmType)
+    | ElmDict (List ElmType)
+    | ElmRecord (List ( String, ElmType ))
+    | ElmChar Char
+    | ElmString String
+    | ElmCustom String
+
+
+entry : String -> Int -> ElmType -> Html msg
 entry identifier index log =
     Html.div
         [ style
@@ -145,15 +160,47 @@ entry identifier index log =
             , ( "width", "400px" )
             ]
         ]
-        (multilineLog log)
+        [ multilineLog log ]
 
 
-multilineLog : String -> List (Html msg)
+multilineLog : ElmType -> Html msg
 multilineLog log =
-    log
-        |> String.split "{%NEWLINE%}"
-        |> List.map (indentText >> Html.span [])
-        |> List.intersperse (Html.br [] [])
+    case log of
+        ElmFunction name ->
+            Html.text <| "Function " ++ name
+
+        ElmBoolean bool ->
+            Html.text (toString bool)
+
+        ElmNumber num ->
+            Html.text num
+
+        ElmList xs ->
+            Html.text (toString xs)
+
+        ElmTuple xs ->
+            Html.text (toString xs)
+
+        ElmArray xs ->
+            Html.text (toString xs)
+
+        ElmSet xs ->
+            Html.text (toString xs)
+
+        ElmDict dict ->
+            Html.text (toString dict)
+
+        ElmRecord values ->
+            Html.text (toString values)
+
+        ElmChar char ->
+            Html.text <| "'" ++ (String.fromChar char) ++ "'"
+
+        ElmString string ->
+            Html.text string
+
+        ElmCustom something ->
+            Html.text something
 
 
 indentText : String -> List (Html msg)
