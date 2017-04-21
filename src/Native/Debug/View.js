@@ -19,7 +19,7 @@ var _stoeffel$debug_view$Native_Debug = (function() {
         }
         clickHandlers[id] = {
           counter: counterEl.addEventListener("click", function() {
-            entryEl.style.display = "block";
+            entryEl.style.display = "flex";
             counterEl.style.display = "none";
           }),
           close: closeEl.addEventListener("click", function() {

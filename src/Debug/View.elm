@@ -7,9 +7,9 @@ import Html.Attributes exposing (style, id)
 
 inspect : String -> (a -> Html msg) -> a -> Html msg
 inspect identifier view x =
-    wrapper
+    contentSpan
         (view x
-            :: (entryWrapper identifier <|
+            :: (wrapper identifier <|
                     Native.Debug.inspect x identifier
                )
         )
@@ -17,16 +17,16 @@ inspect identifier view x =
 
 inspect2 : String -> (a -> b -> Html msg) -> a -> b -> Html msg
 inspect2 identifier view x y =
-    wrapper
+    contentSpan
         (view x y
-            :: (entryWrapper identifier <|
+            :: (wrapper identifier <|
                     Native.Debug.inspect2 x y identifier
                )
         )
 
 
-wrapper : List (Html msg) -> Html msg
-wrapper content =
+contentSpan : List (Html msg) -> Html msg
+contentSpan content =
     Html.span
         [ style
             [ ( "position", "relative" )
@@ -51,7 +51,6 @@ styles { radius, border, inverse } =
         else
             "#fefefe"
       )
-    , ( "overflow", "scroll" )
     , ( "max-height", "400px" )
     , ( "border-color", "#c7f465" )
     , ( "border-width", "2px" )
@@ -61,9 +60,16 @@ styles { radius, border, inverse } =
     ]
 
 
-entryWrapper : String -> List String -> List (Html msg)
-entryWrapper identifier history =
-    [ Html.div
+wrapper : String -> List String -> List (Html msg)
+wrapper identifier history =
+    [ counter identifier <| List.length history
+    , entries identifier history
+    ]
+
+
+entries : String -> List String -> Html msg
+entries identifier history =
+    Html.div
         [ style <|
             [ ( "display", "none" )
             , ( "padding", "10px" )
@@ -72,11 +78,16 @@ entryWrapper identifier history =
                 ++ styles { radius = "5px", border = "solid", inverse = False }
         , id ("elm-render-visualizer-entry-" ++ identifier)
         ]
-        (closeButton identifier
-            :: (List.reverse <| List.indexedMap (entry identifier) history)
-        )
-    , counter identifier <| List.length history
-    ]
+        [ closeButton identifier
+        , List.indexedMap (entry identifier) history
+            |> List.reverse
+            |> Html.div
+                [ style
+                    [ ( "overflow", "scroll" )
+                    , ( "width", "100%" )
+                    ]
+                ]
+        ]
 
 
 closeButton : String -> Html msg
@@ -87,22 +98,20 @@ closeButton identifier =
             , ( "padding", "10px" )
             , ( "position", "absolute" )
             , ( "padding", "10px" )
-            , ( "position", "absolute" )
             , ( "background-color", "rgb(199, 244, 101)" )
             , ( "color", "rgb(85, 99, 102)" )
             , ( "max-height", "400px" )
             , ( "border-color", "rgb(199, 244, 101)" )
             , ( "border-width", "2px" )
             , ( "border-style", "none" )
-            , ( "box-shadow", "rgba(85, 99, 102, 0.117647) 0px 1px 3px, rgba(85, 99, 102, 0.239216) 0px 1px 2px" )
             , ( "border-bottom-left-radius", "50%" )
             , ( "width", "20px" )
             , ( "height", "20px" )
             , ( "display", "block" )
             , ( "z-index", "99999999" )
             , ( "position", "absolute" )
-            , ( "right", "-3px" )
-            , ( "top", "-3px" )
+            , ( "right", "-2px" )
+            , ( "top", "-2px" )
             , ( "line-height", "2px" )
             , ( "padding", "0px" )
             ]
