@@ -2,7 +2,8 @@ module Debug.View exposing (inspect, inspect2)
 
 import Native.Debug.View
 import Html exposing (Html)
-import Html.Attributes exposing (style, id)
+import Html.Attributes exposing (style, id, property)
+import Json.Encode exposing (string)
 
 
 inspect : String -> (a -> Html msg) -> a -> Html msg
@@ -151,5 +152,18 @@ multilineLog : String -> List (Html msg)
 multilineLog log =
     log
         |> String.split "{%NEWLINE%}"
-        |> List.map (Html.text >> List.singleton >> Html.span [])
+        |> List.map (indentText >> Html.span [])
         |> List.intersperse (Html.br [] [])
+
+
+indentText : String -> List (Html msg)
+indentText text =
+    text
+        |> String.split "{%INDENTATION%}"
+        |> List.map Html.text
+        |> List.intersperse nbsp
+
+
+nbsp : Html msg
+nbsp =
+    Html.span [ property "innerHTML" (string "&nbsp;&nbsp;&nbsp;&nbsp;") ] []

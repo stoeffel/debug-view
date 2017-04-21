@@ -30,7 +30,8 @@ var _stoeffel$debug_view$Native_Debug = (function() {
       }
       requestAnimationFrame(addClickHandlers);
     }
-    var entry = toString(a);
+    var entry = toString(a, 0);
+    console.log(entry);
     if (JSON.stringify(log[id][log[id].length - 1]) === JSON.stringify(entry)) {
       return _elm_lang$core$Native_List.fromArray(log[id]);
     }
@@ -46,7 +47,7 @@ var _stoeffel$debug_view$Native_Debug = (function() {
   };
 
   // This is a modified version of toString from elm core: https://github.com/elm-lang/core/blob/3.0.0/src/Native/Utils.js#L358
-  function toString(v) {
+  function toString(v, indentation) {
     var type = typeof v;
     if (type === "function") {
       var name = v.func ? v.func.name : v.name;
@@ -64,17 +65,17 @@ var _stoeffel$debug_view$Native_Debug = (function() {
         var output = [];
         for (var k in v) {
           if (k === "ctor") continue;
-          output.push(toString(v[k]));
+          output.push(toString(v[k]), indentation + 1);
         }
         return "(" + output.join(",") + ")";
       } else if (v.ctor === "_Array") {
         var list = _elm_lang$core$Array.toList(v);
-        return "Array.fromList " + toString(list);
+        return "Array.fromList " + toString(list, indentation + 1);
       } else if (v.ctor === "::") {
-        var output = "[" + toString(v._0);
+        var output = "[" + toString(v._0, indentation + 1);
         v = v._1;
         while (v.ctor === "::") {
-          output += "," + toString(v._0);
+          output += "," + toString(v._0, indentation + 1);
           v = v._1;
         }
         return output + "]";
@@ -100,7 +101,7 @@ var _stoeffel$debug_view$Native_Debug = (function() {
           name = "Dict";
           list = _elm_lang$core$Dict.toList(v);
         }
-        return name + ".fromList " + toString(list);
+        return name + ".fromList " + toString(list, indentation + 1);
       } else if (v.ctor.slice(0, 5) === "Text:") {
         return "<text>";
       } else if (v.ctor === "Element_elm_builtin") {
@@ -111,7 +112,7 @@ var _stoeffel$debug_view$Native_Debug = (function() {
         var output = "";
         for (var i in v) {
           if (i === "ctor") continue;
-          var str = toString(v[i]);
+          var str = toString(v[i], indentation + 1);
           var parenless = str[0] === "{" ||
             str[0] === "<" ||
             str.indexOf(" ") < 0;
@@ -124,12 +125,19 @@ var _stoeffel$debug_view$Native_Debug = (function() {
     } else if (type === "object") {
       var output = [];
       for (var k in v) {
-        output.push(k + " = " + toString(v[k]));
+        output.push(k + " = " + toString(v[k], indentation + 1));
       }
       if (output.length === 0) {
         return "{}";
       }
-      return "{ " + output.join("{%NEWLINE%}, ") + "{%NEWLINE%}}";
+      var indent = "{%INDENTATION%}".repeat(indentation);
+      return "{%NEWLINE%}" +
+        indent +
+        "{ " +
+        output.join("{%NEWLINE%}" + indent + ", ") +
+        "{%NEWLINE%}" +
+        indent +
+        "}";
     }
     return "<internal structure>";
   }
