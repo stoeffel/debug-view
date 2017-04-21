@@ -36,6 +36,30 @@ stylesheet =
 css : String
 css =
     """
+    .elm-render-visualizer-ellipsis {
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .elm-render-visualizer-expanded {
+        text-overflow: none;
+        white-space: nowrap;
+        overflow: scroll;
+    }
+
+    .elm-render-visualizer-expanded .elm-render-visualizer-text {
+        display: none;
+    }
+
+    .elm-render-visualizer-detailed {
+        display: none;
+    }
+
+    .elm-render-visualizer-expanded .elm-render-visualizer-detailed {
+        display: block;
+    }
+
     .elm-render-visualizer-indent-block {
         padding-left: 2em;
     }
@@ -196,71 +220,111 @@ entry identifier index log =
             [ ( "list-style", "none" )
             , ( "width", "400px" )
             ]
-        , class "elm-render-visualizer-collapsed"
         ]
-        [ Html.text (toString index)
+        [ Html.text (toString index ++ ": ")
         , renderElmType log
         ]
 
 
 renderElmType : ElmType -> Html msg
-renderElmType log =
+renderElmType =
+    elmTypeToTree >> treeToHtml
+
+
+type Tree
+    = ListItem String
+    | KeyValue ( String, Tree )
+    | Block String String (List Tree)
+
+
+elmTypeToTree : ElmType -> Tree
+elmTypeToTree log =
     case log of
         ElmFunction name ->
-            Html.text <| "Function " ++ name
+            ListItem <| "Function " ++ name
 
         ElmBoolean bool ->
-            Html.text (toString bool)
+            ListItem <| toString bool
 
         ElmNumber num ->
-            Html.text num
+            ListItem num
 
         ElmList xs ->
-            renderListLike "[" "]" xs
+            Block "[" "]" <| List.map elmTypeToTree xs
 
         ElmTuple xs ->
-            renderListLike "(" ")" xs
+            Block "(" ")" <| List.map elmTypeToTree xs
 
         ElmArray xs ->
-            renderListLike "Array.fromList [" "]" xs
+            Block "Array.fromList [" "]" <| List.map elmTypeToTree xs
 
         ElmSet xs ->
-            renderListLike "Set.fromList [" "]" xs
+            Block "Set.fromList [" "]" <| List.map elmTypeToTree xs
 
         ElmDict xs ->
-            renderListLike "Dict.fromList [" "]" xs
+            Block "Dict.fromList [" "]" <| List.map elmTypeToTree xs
 
         ElmRecord [] ->
-            Html.text "{}"
+            ListItem "{}"
 
-        ElmRecord (x :: xs) ->
-            Html.div
-                [ style [ ( "position", "relative" ) ]
-                ]
-                [ Html.button
-                    [ style
-                        [ ( "display", "inline" )
-                        , ( "position", "absolute" )
-                        ]
-                    , attribute "onclick" "window._elmRenderVisualizerToggleCollapse(this);"
-                    ]
-                    [ Html.text ">" ]
-                , indentBlock <|
-                    List.concat
-                        [ [ renderField "{ " x ]
-                        , List.map (renderField ", ") xs
-                        , [ Html.text "}" ]
-                        ]
-                ]
+        ElmRecord xs ->
+            Block "{" "}" <| List.map (\( k, v ) -> KeyValue ( k, elmTypeToTree v )) xs
 
         ElmChar char ->
-            Html.text <| "'" ++ (String.fromChar char) ++ "'"
+            ListItem <| String.fromChar char
 
         ElmString string ->
-            Html.text string
+            ListItem string
 
         ElmCustom something ->
-            Html.text something
+            ListItem something
+
+
+treeToText : Tree -> String
+treeToText t =
+    case t of
+        ListItem string ->
+            string
+
+        KeyValue ( k, v ) ->
+            k ++ " = " ++ treeToText v
+
+        Block open close xs ->
+            [ open
+            , List.intersperse (ListItem ", ") xs
+                |> List.map treeToText
+                |> String.concat
+            , close
+            ]
+                |> String.concat
+
+
+treeToHtml : Tree -> Html msg
+treeToHtml t =
+    case t of
+        ListItem string ->
+            Html.text string
+
+        KeyValue ( k, v ) ->
+            Html.span []
+                [ Html.text <| k ++ " = "
+                , treeToHtml v
+                ]
+
+        Block open close xs ->
+            Html.div
+                [ class "elm-render-visualizer-ellipsis"
+                , attribute "onclick" "_elmRenderVisualizerToggleCollapse(this);"
+                ]
+                [ Html.span [ class "elm-render-visualizer-text" ] [ Html.text <| treeToText t ]
+                , [ [ Html.text open ]
+                  , List.intersperse (ListItem ", ") xs
+                        |> List.map treeToHtml
+                  , [ Html.text close ]
+                  ]
+                    |> List.concat
+                    |> Html.span [ class "elm-render-visualizer-detailed" ]
+                ]
 
 
 renderListLike : String -> String -> List ElmType -> Html msg
