@@ -36,28 +36,40 @@ stylesheet =
 css : String
 css =
     """
-    .elm-render-visualizer-ellipsis,
-    .elm-render-visualizer-text {
+    .elm-debug-view-ellipsis,
+    .elm-debug-view-text {
         white-space: nowrap;
         text-overflow: ellipsis;
         white-space: nowrap;
         overflow: hidden;
     }
 
-    .elm-render-visualizer-text {
+    .elm-debug-view-text {
         display: none;
     }
 
-    .elm-render-visualizer-collapsed .elm-render-visualizer-text {
+    .elm-debug-view-collapsed .elm-debug-view-text {
         display: inline;
     }
 
-    .elm-render-visualizer-detailed {
+    .elm-debug-view-detailed {
         padding-left: 2em;
     }
 
-    .elm-render-visualizer-collapsed .elm-render-visualizer-detailed {
+    .elm-debug-view-collapsed .elm-debug-view-detailed {
         display: none;
+    }
+
+    .elm-debug-view-entry {
+        list-style: none;
+        width: 400px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+    }
+
+    .elm-debug-view-entry > span > .elm-debug-view-detailed {
+        padding-left: 0px;
     }
 """
 
@@ -114,7 +126,7 @@ entries identifier history =
             , ( "font-family", "monospace" )
             ]
                 ++ styles { radius = "5px", border = "solid", inverse = False }
-        , id ("elm-render-visualizer-entry-" ++ identifier)
+        , id ("elm-debug-view-entry-" ++ identifier)
         ]
         [ closeButton identifier
         , List.indexedMap (entry identifier) history
@@ -153,7 +165,7 @@ closeButton identifier =
             , ( "line-height", "2px" )
             , ( "padding", "0px" )
             ]
-        , id ("elm-render-visualizer-close-button-" ++ identifier)
+        , id ("elm-debug-view-close-button-" ++ identifier)
         ]
         [ Html.text "X"
         ]
@@ -169,7 +181,7 @@ counter identifier index =
             , ( "z-index", "20000" )
             ]
                 ++ styles { radius = "50%", border = "none", inverse = True }
-        , id ("elm-render-visualizer-counter-" ++ identifier)
+        , id ("elm-debug-view-counter-" ++ identifier)
         ]
         [ Html.text <| toString index ]
 
@@ -192,12 +204,7 @@ type ElmType
 entry : String -> Int -> ElmType -> Html msg
 entry identifier index log =
     Html.div
-        [ style
-            [ ( "list-style", "none" )
-            , ( "width", "400px" )
-            , ( "overflow", "hidden" )
-            , ( "text-overflow", "ellipsis" )
-            ]
+        [ class "elm-debug-view-entry"
         ]
         [ Html.span
             [ style
@@ -303,12 +310,12 @@ treeToHtml t =
 
         Block open close xs ->
             Html.span
-                [ class "elm-render-visualizer-collapsed"
+                [ class "elm-debug-view-collapsed"
                 , attribute "onclick" "_elmRenderVisualizerToggleCollapse(this);"
                 ]
-                [ Html.span [ class "elm-render-visualizer-text" ] [ Html.text <| treeToText t ]
+                [ Html.span [ class "elm-debug-view-text" ] [ Html.text <| treeToText t ]
                 , renderItems open close xs
-                    |> Html.div [ class "elm-render-visualizer-detailed" ]
+                    |> Html.div [ class "elm-debug-view-detailed" ]
                 ]
 
 
@@ -328,4 +335,4 @@ renderItems open close xs =
 
 nowrap : List (Html msg) -> Html msg
 nowrap children =
-    Html.div [ class "elm-render-visualizer-ellipsis" ] children
+    Html.div [ class "elm-debug-view-ellipsis" ] children

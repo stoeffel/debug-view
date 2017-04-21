@@ -8,9 +8,9 @@ var _stoeffel$debug_view$Native_Debug_View = (function() {
     }
     if (!clickHandlers[id]) {
       function addClickHandlers() {
-        var entryId = "elm-render-visualizer-entry-" + id;
-        var closeId = "elm-render-visualizer-close-button-" + id;
-        var counterId = "elm-render-visualizer-counter-" + id;
+        var entryId = "elm-debug-view-entry-" + id;
+        var closeId = "elm-debug-view-close-button-" + id;
+        var counterId = "elm-debug-view-counter-" + id;
         var counterEl = document.getElementById(counterId);
         var entryEl = document.getElementById(entryId);
         var closeEl = document.getElementById(closeId);
@@ -201,7 +201,7 @@ var _stoeffel$debug_view$Native_Debug_View = (function() {
   }
 })();
 window._elmRenderVisualizerToggleCollapse = function(e) {
-  var cls = "elm-render-visualizer-collapsed";
+  var cls = "elm-debug-view-collapsed";
   toggleClassElmRenderVisualizer(e, cls);
   window.event.stopPropagation();
 };
