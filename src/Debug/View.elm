@@ -2,8 +2,7 @@ module Debug.View exposing (inspect, inspect2)
 
 import Native.Debug.View
 import Html exposing (Html)
-import Html.Attributes exposing (style, id, property)
-import Json.Encode exposing (string)
+import Html.Attributes exposing (style, id, attribute, property, class)
 
 
 inspect : String -> (a -> Html msg) -> a -> Html msg
@@ -11,7 +10,7 @@ inspect identifier view x =
     contentSpan
         (view x
             :: (wrapper identifier <|
-                    Native.Debug.inspect x identifier
+                    Native.Debug.View.inspect x identifier
                )
         )
 
@@ -21,9 +20,46 @@ inspect2 identifier view x y =
     contentSpan
         (view x y
             :: (wrapper identifier <|
-                    Native.Debug.inspect2 x y identifier
+                    Native.Debug.View.inspect2 x y identifier
                )
         )
+
+
+stylesheet : Html msg
+stylesheet =
+    Html.node "style"
+        []
+        [ Html.text css
+        ]
+
+
+css : String
+css =
+    """
+    .elm-render-visualizer-ellipsis,
+    .elm-render-visualizer-text {
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    .elm-render-visualizer-text {
+        display: none;
+    }
+
+    .elm-render-visualizer-collapsed .elm-render-visualizer-text {
+        display: inline;
+    }
+
+    .elm-render-visualizer-detailed {
+        padding-left: 2em;
+    }
+
+    .elm-render-visualizer-collapsed .elm-render-visualizer-detailed {
+        display: none;
+    }
+"""
 
 
 contentSpan : List (Html msg) -> Html msg
@@ -33,7 +69,7 @@ contentSpan content =
             [ ( "position", "relative" )
             ]
         ]
-        content
+        (stylesheet :: content)
 
 
 styles { radius, border, inverse } =
@@ -61,20 +97,21 @@ styles { radius, border, inverse } =
     ]
 
 
-wrapper : String -> List String -> List (Html msg)
+wrapper : String -> List ElmType -> List (Html msg)
 wrapper identifier history =
     [ counter identifier <| List.length history
     , entries identifier history
     ]
 
 
-entries : String -> List String -> Html msg
+entries : String -> List ElmType -> Html msg
 entries identifier history =
     Html.div
         [ style <|
             [ ( "display", "none" )
             , ( "padding", "10px" )
             , ( "z-index", "30000" )
+            , ( "font-family", "monospace" )
             ]
                 ++ styles { radius = "5px", border = "solid", inverse = False }
         , id ("elm-render-visualizer-entry-" ++ identifier)
@@ -137,33 +174,158 @@ counter identifier index =
         [ Html.text <| toString index ]
 
 
-entry : String -> Int -> String -> Html msg
+type ElmType
+    = ElmFunction String
+    | ElmBoolean Bool
+    | ElmNumber String
+    | ElmList (List ElmType)
+    | ElmTuple (List ElmType)
+    | ElmArray (List ElmType)
+    | ElmSet (List ElmType)
+    | ElmDict (List ElmType)
+    | ElmRecord (List ( String, ElmType ))
+    | ElmChar Char
+    | ElmString String
+    | ElmCustom String
+
+
+entry : String -> Int -> ElmType -> Html msg
 entry identifier index log =
     Html.div
         [ style
             [ ( "list-style", "none" )
             , ( "width", "400px" )
+            , ( "overflow", "hidden" )
+            , ( "text-overflow", "ellipsis" )
             ]
         ]
-        (multilineLog log)
+        [ Html.span
+            [ style
+                [ ( "display", "flex" )
+                , ( "opacity", ".5" )
+                ]
+            ]
+            [ Html.text (toString index), Html.hr [ style [ ( "flex", "1" ) ] ] [] ]
+        , renderElmType log
+        ]
 
 
-multilineLog : String -> List (Html msg)
-multilineLog log =
-    log
-        |> String.split "{%NEWLINE%}"
-        |> List.map (indentText >> Html.span [])
-        |> List.intersperse (Html.br [] [])
+renderElmType : ElmType -> Html msg
+renderElmType =
+    elmTypeToTree >> treeToHtml
 
 
-indentText : String -> List (Html msg)
-indentText text =
-    text
-        |> String.split "{%INDENTATION%}"
-        |> List.map Html.text
-        |> List.intersperse nbsp
+type Tree
+    = ListItem String
+    | KeyValue ( String, Tree )
+    | Block String String (List Tree)
 
 
-nbsp : Html msg
-nbsp =
-    Html.span [ property "innerHTML" (string "&nbsp;&nbsp;&nbsp;&nbsp;") ] []
+elmTypeToTree : ElmType -> Tree
+elmTypeToTree log =
+    case log of
+        ElmFunction name ->
+            ListItem <| "Function " ++ name
+
+        ElmBoolean bool ->
+            ListItem <| toString bool
+
+        ElmNumber num ->
+            ListItem num
+
+        ElmList xs ->
+            Block "[" "]" <| List.map elmTypeToTree xs
+
+        ElmTuple xs ->
+            Block "(" ")" <| List.map elmTypeToTree xs
+
+        ElmArray xs ->
+            Block "Array.fromList [" "]" <| List.map elmTypeToTree xs
+
+        ElmSet xs ->
+            Block "Set.fromList [" "]" <| List.map elmTypeToTree xs
+
+        ElmDict xs ->
+            Block "Dict.fromList [" "]" <| List.map elmTypeToTree xs
+
+        ElmRecord [] ->
+            ListItem "{}"
+
+        ElmRecord xs ->
+            Block "{" "}" <| List.map (\( k, v ) -> KeyValue ( k, elmTypeToTree v )) xs
+
+        ElmChar char ->
+            ListItem <| String.fromChar char
+
+        ElmString string ->
+            ListItem string
+
+        ElmCustom something ->
+            ListItem something
+
+
+treeToText : Tree -> String
+treeToText t =
+    case t of
+        ListItem string ->
+            string
+
+        KeyValue ( k, v ) ->
+            k ++ " = " ++ treeToText v
+
+        Block open close xs ->
+            [ open
+            , List.intersperse (ListItem ", ") xs
+                |> List.map treeToText
+                |> String.concat
+            , close
+            ]
+                |> String.concat
+
+
+treeToHtml : Tree -> Html msg
+treeToHtml t =
+    case t of
+        ListItem string ->
+            Html.text string
+
+        KeyValue ( k, v ) ->
+            Html.span []
+                [ Html.span []
+                    [ Html.span
+                        [ style [ ( "color", "#c7f465" ) ]
+                        ]
+                        [ Html.text k ]
+                    , Html.span [] [ Html.text " = " ]
+                    ]
+                , treeToHtml v
+                ]
+
+        Block open close xs ->
+            Html.span
+                [ class "elm-render-visualizer-collapsed"
+                , attribute "onclick" "_elmRenderVisualizerToggleCollapse(this);"
+                ]
+                [ Html.span [ class "elm-render-visualizer-text" ] [ Html.text <| treeToText t ]
+                , renderItems open close xs
+                    |> Html.div [ class "elm-render-visualizer-detailed" ]
+                ]
+
+
+renderItems : String -> String -> List Tree -> List (Html msg)
+renderItems open close xs =
+    case List.map treeToHtml xs of
+        [] ->
+            [ Html.text (open ++ close) ]
+
+        head :: tail ->
+            List.concat
+                [ [ nowrap [ Html.text <| open ++ " ", head ] ]
+                , List.map (\tree -> nowrap [ Html.text ", ", tree ]) tail
+                , [ Html.div [] [ Html.text close ] ]
+                ]
+
+
+nowrap : List (Html msg) -> Html msg
+nowrap children =
+    Html.div [ class "elm-render-visualizer-ellipsis" ] children

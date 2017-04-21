@@ -1,5 +1,5 @@
 //import Native.Utils //
-var _stoeffel$debug_view$Native_Debug = (function() {
+var _stoeffel$debug_view$Native_Debug_View = (function() {
   var log = {};
   var clickHandlers = {};
   function inspect(a, id) {
@@ -31,7 +31,6 @@ var _stoeffel$debug_view$Native_Debug = (function() {
       requestAnimationFrame(addClickHandlers);
     }
     var entry = toString(a, 0);
-    console.log(entry);
     if (JSON.stringify(log[id][log[id].length - 1]) === JSON.stringify(entry)) {
       return _elm_lang$core$Native_List.fromArray(log[id]);
     }
@@ -47,47 +46,61 @@ var _stoeffel$debug_view$Native_Debug = (function() {
   };
 
   // This is a modified version of toString from elm core: https://github.com/elm-lang/core/blob/3.0.0/src/Native/Utils.js#L358
-  function toString(v, indentation) {
-    var indent = "{%INDENTATION%}".repeat(indentation);
+  function toString(v) {
     var type = typeof v;
     if (type === "function") {
       var name = v.func ? v.func.name : v.name;
-      return "<function" + (name === "" ? "" : ": ") + name + ">";
+      return {
+        ctor: "ElmFunction",
+        _0: name
+      };
     } else if (type === "boolean") {
-      return v ? "True" : "False";
+      return {
+        ctor: "ElmBoolean",
+        _0: v
+      };
     } else if (type === "number") {
-      return v + "";
+      return {
+        ctor: "ElmNumber",
+        _0: "" + v
+      };
     } else if (v instanceof String && v.isChar) {
-      return "'" + addSlashes(v, true) + "'";
+      return {
+        ctor: "ElmChar",
+        _0: v
+      };
     } else if (type === "string") {
-      return '"' + addSlashes(v, false) + '"';
+      return {
+        ctor: "ElmString",
+        _0: v
+      };
     } else if (type === "object" && "ctor" in v) {
       if (v.ctor.substring(0, 6) === "_Tuple") {
         var output = [];
         for (var k in v) {
           if (k === "ctor") continue;
-          output.push(toString(v[k]), indentation + 1);
+          output.push(toString(v[k]));
         }
-        return "(" + output.join(",") + ")";
+        return {
+          ctor: "ElmTuple",
+          _0: _elm_lang$core$Native_List.fromArray(output)
+        };
       } else if (v.ctor === "_Array") {
         var list = _elm_lang$core$Array.toList(v);
-        return "Array.fromList " + toString(list, indentation + 1);
+        return {
+          ctor: "ElmArray",
+          _0: listToString(list)
+        };
       } else if (v.ctor === "::") {
-        var output = "{%NEWLINE%}" +
-          indent +
-          "[ " +
-          toString(v._0, indentation + 1);
-        v = v._1;
-        while (v.ctor === "::") {
-          output += "{%NEWLINE%}" +
-            indent +
-            ", " +
-            toString(v._0, indentation + 1);
-          v = v._1;
-        }
-        return output + "{%NEWLINE%}" + indent + "]";
+        return {
+          ctor: "ElmList",
+          _0: listToString(v)
+        };
       } else if (v.ctor === "[]") {
-        return "[]";
+        return {
+          ctor: "ElmList",
+          _0: listToString(v)
+        };
       } else if (
         v.ctor === "RBNode_elm_builtin" ||
         v.ctor === "RBEmpty_elm_builtin" ||
@@ -102,50 +115,74 @@ var _stoeffel$debug_view$Native_Debug = (function() {
             function(x) {
               return x._0;
             },
-            _elm_lang$core$Dict.toList(v._0)
+            _elm_lang$core$Dict$toList(v._0)
           );
         } else {
           name = "Dict";
-          list = _elm_lang$core$Dict.toList(v);
+          list = _elm_lang$core$Dict$toList(v);
         }
-        return name + ".fromList " + toString(list, indentation + 1);
+        return {
+          ctor: "Elm" + name,
+          _0: listToString(list)
+        };
       } else if (v.ctor.slice(0, 5) === "Text:") {
-        return "<text>";
+        return {
+          ctor: "ElmCustom",
+          _0: "<text>"
+        };
       } else if (v.ctor === "Element_elm_builtin") {
-        return "<element>";
+        return {
+          ctor: "ElmCustom",
+          _0: "<element>"
+        };
       } else if (v.ctor === "Form_elm_builtin") {
-        return "<form>";
+        return {
+          ctor: "ElmCustom",
+          _0: "<form>"
+        };
       } else {
         var output = "";
         for (var i in v) {
           if (i === "ctor") continue;
-          var str = toString(v[i], indentation + 1);
+          var str = toString(v[i]);
           var parenless = str[0] === "{" ||
             str[0] === "<" ||
             str.indexOf(" ") < 0;
           output += " " + (parenless ? str : "(" + str + ")");
         }
-        return v.ctor + output;
+        return {
+          ctor: "ElmCustom",
+          _0: v.ctor + output
+        };
       }
     } else if (type === "object" && "notify" in v && "id" in v) {
-      return "<signal>";
+      return {
+        ctor: "ElmCustom",
+        _0: "<signal>"
+      };
     } else if (type === "object") {
       var output = [];
       for (var k in v) {
-        output.push(k + " = " + toString(v[k], indentation + 1));
+        output.push(_elm_lang$core$Native_Utils.Tuple2(k, toString(v[k])));
       }
-      if (output.length === 0) {
-        return "{}";
-      }
-      return "{%NEWLINE%}" +
-        indent +
-        "{ " +
-        output.join("{%NEWLINE%}" + indent + ", ") +
-        "{%NEWLINE%}" +
-        indent +
-        "}";
+      return {
+        ctor: "ElmRecord",
+        _0: _elm_lang$core$Native_List.fromArray(output)
+      };
     }
-    return "<internal structure>";
+    return {
+      ctor: "ElmCustom",
+      _0: "<internal structure>"
+    };
+  }
+
+  function listToString(v) {
+    var output = [];
+    while (v.ctor === "::") {
+      output.push(toString(v._0));
+      v = v._1;
+    }
+    return _elm_lang$core$Native_List.fromArray(output);
   }
 
   function addSlashes(str, isChar) {
@@ -163,3 +200,23 @@ var _stoeffel$debug_view$Native_Debug = (function() {
     }
   }
 })();
+window._elmRenderVisualizerToggleCollapse = function(e) {
+  var cls = "elm-render-visualizer-collapsed";
+  toggleClassElmRenderVisualizer(e, cls);
+  window.event.stopPropagation();
+};
+function toggleClassElmRenderVisualizer(element, className) {
+  if (!element || !className) {
+    return;
+  }
+
+  var classString = element.className,
+    nameIndex = classString.indexOf(className);
+  if (nameIndex == -1) {
+    classString += " " + className;
+  } else {
+    classString = classString.substr(0, nameIndex) +
+      classString.substr(nameIndex + className.length);
+  }
+  element.className = classString;
+}
