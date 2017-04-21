@@ -26,6 +26,27 @@ inspect2 identifier view x y =
         )
 
 
+stylesheet : Html msg
+stylesheet =
+    Html.node "style"
+        []
+        [ Html.text css
+        ]
+
+
+css : String
+css =
+    """
+    .elm-render-visualizer-indent-block {
+        padding-left: 2em;
+    }
+
+    .elm-render-visualizer-collapsed .elm-render-visualizer-indent-block {
+        display: flex;
+    }
+"""
+
+
 contentSpan : List (Html msg) -> Html msg
 contentSpan content =
     Html.span
@@ -33,7 +54,7 @@ contentSpan content =
             [ ( "position", "relative" )
             ]
         ]
-        content
+        (stylesheet :: content)
 
 
 styles { radius, border, inverse } =
@@ -75,6 +96,7 @@ entries identifier history =
             [ ( "display", "none" )
             , ( "padding", "10px" )
             , ( "z-index", "30000" )
+            , ( "font-family", "monospace" )
             ]
                 ++ styles { radius = "5px", border = "solid", inverse = False }
         , id ("elm-render-visualizer-entry-" ++ identifier)
@@ -194,18 +216,21 @@ renderElmType log =
             Html.text "{}"
 
         ElmRecord (x :: xs) ->
-            indentBlock
+            Html.div [ style [ ( "position", "relative" ) ] ]
                 [ Html.button
-                    [ style [ ( "display", "inline" ) ]
+                    [ style
+                        [ ( "display", "inline" )
+                        , ( "position", "absolute" )
+                        ]
                     , attribute "onclick" "window._elmRenderVisualizerToggleCollapse(this);"
                     ]
                     [ Html.text ">" ]
-                , Html.div []
-                    [ renderField "{ " x
-                    ]
-                , List.map (renderField ", ") xs
-                    |> Html.div []
-                , Html.text "}"
+                , indentBlock <|
+                    List.concat
+                        [ [ renderField "{ " x ]
+                        , List.map (renderField ", ") xs
+                        , [ Html.text "}" ]
+                        ]
                 ]
 
         ElmChar char ->
@@ -225,14 +250,12 @@ renderListLike open close items =
             Html.text (open ++ close)
 
         x :: xs ->
-            indentBlock
-                [ Html.div []
-                    [ Html.span [] [ Html.text (open ++ " "), renderElmType x ]
+            indentBlock <|
+                List.concat
+                    [ [ nowrap [ Html.text (open ++ " "), renderElmType x ] ]
+                    , List.map (renderListItem << renderElmType) xs
+                    , [ Html.text close ]
                     ]
-                , List.map (renderListItem << renderElmType) xs
-                    |> Html.div []
-                , Html.text close
-                ]
 
 
 renderList : List ElmType -> Html msg
@@ -252,28 +275,19 @@ renderField prefix ( k, v ) =
 
 renderListItem : Html msg -> Html msg
 renderListItem item =
-    Html.div []
+    nowrap
         [ Html.text ", "
         , item
         ]
 
 
-
--- [ List.repeat indentation nbsp
--- , [ Html.text text ]
--- ]
---     |> List.concat
---     |> Html.span [ class "elm-render-visualizer-indentation" ]
-
-
-nbsp : Html msg
-nbsp =
-    Html.span [ property "innerHTML" (string "&nbsp;&nbsp;&nbsp;&nbsp;") ] []
+nowrap : List (Html msg) -> Html msg
+nowrap =
+    Html.div [ style [ ( "white-space", "nowrap" ) ] ]
 
 
 indentBlock : List (Html msg) -> Html msg
 indentBlock children =
     Html.div
-        [ style [ ( "padding-left", "2em" ) ]
-        ]
+        [ class "elm-render-visualizer-indent-block" ]
         children
