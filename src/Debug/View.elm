@@ -2,7 +2,7 @@ module Debug.View exposing (inspect, inspect2)
 
 import Native.Debug.View
 import Html exposing (Html)
-import Html.Attributes exposing (style, id, attribute, property)
+import Html.Attributes exposing (style, id, attribute, property, class)
 import Json.Encode exposing (string)
 
 
@@ -160,117 +160,120 @@ entry identifier index log =
             , ( "width", "400px" )
             ]
         ]
-        [ renderElmType -1 log ]
+        [ renderElmType log ]
 
 
-renderElmType : Int -> ElmType -> Html msg
-renderElmType indentation log =
-    let
-        newIndentation =
-            indentation + 1
-    in
-        case log of
-            ElmFunction name ->
-                Html.text <| "Function " ++ name
+renderElmType : ElmType -> Html msg
+renderElmType log =
+    case log of
+        ElmFunction name ->
+            Html.text <| "Function " ++ name
 
-            ElmBoolean bool ->
-                Html.text (toString bool)
+        ElmBoolean bool ->
+            Html.text (toString bool)
 
-            ElmNumber num ->
-                Html.text num
+        ElmNumber num ->
+            Html.text num
 
-            ElmList xs ->
-                renderListLike newIndentation "[" "]" xs
+        ElmList xs ->
+            renderListLike "[" "]" xs
 
-            ElmTuple xs ->
-                renderListLike newIndentation "(" ")" xs
+        ElmTuple xs ->
+            renderListLike "(" ")" xs
 
-            ElmArray xs ->
-                renderListLike newIndentation "Array.fromList [" "]" xs
+        ElmArray xs ->
+            renderListLike "Array.fromList [" "]" xs
 
-            ElmSet xs ->
-                renderListLike newIndentation "Set.fromList [" "]" xs
+        ElmSet xs ->
+            renderListLike "Set.fromList [" "]" xs
 
-            ElmDict xs ->
-                renderListLike newIndentation "Dict.fromList [" "]" xs
+        ElmDict xs ->
+            renderListLike "Dict.fromList [" "]" xs
 
-            ElmRecord [] ->
-                Html.div [] [ indentText indentation "{}" ]
+        ElmRecord [] ->
+            Html.text "{}"
 
-            ElmRecord (x :: xs) ->
-                Html.span []
-                    [ Html.button
-                        [ style [ ( "display", "inline" ) ]
-                        , attribute "onclick" "window._elmRenderVisualizerToggleCollapse(this);"
-                        ]
-                        [ Html.text ">" ]
-                    , Html.div []
-                        [ renderField newIndentation "{ " x
-                        ]
-                    , List.map (renderField newIndentation ", ") xs
-                        |> Html.div []
-                    , indentText newIndentation "}"
+        ElmRecord (x :: xs) ->
+            indentBlock
+                [ Html.button
+                    [ style [ ( "display", "inline" ) ]
+                    , attribute "onclick" "window._elmRenderVisualizerToggleCollapse(this);"
                     ]
+                    [ Html.text ">" ]
+                , Html.div []
+                    [ renderField "{ " x
+                    ]
+                , List.map (renderField ", ") xs
+                    |> Html.div []
+                , Html.text "}"
+                ]
 
-            ElmChar char ->
-                Html.text <| "'" ++ (String.fromChar char) ++ "'"
+        ElmChar char ->
+            Html.text <| "'" ++ (String.fromChar char) ++ "'"
 
-            ElmString string ->
-                Html.text string
+        ElmString string ->
+            Html.text string
 
-            ElmCustom something ->
-                Html.text something
+        ElmCustom something ->
+            Html.text something
 
 
-renderListLike : Int -> String -> String -> List ElmType -> Html msg
-renderListLike indentation open close items =
+renderListLike : String -> String -> List ElmType -> Html msg
+renderListLike open close items =
     case items of
         [] ->
             Html.text (open ++ close)
 
         x :: xs ->
-            Html.div []
+            indentBlock
                 [ Html.div []
-                    [ Html.span [] [ indentText indentation (open ++ " "), renderElmType indentation x ]
+                    [ Html.span [] [ Html.text (open ++ " "), renderElmType x ]
                     ]
-                , List.map (renderListItem indentation << renderElmType indentation) xs
+                , List.map (renderListItem << renderElmType) xs
                     |> Html.div []
-                , indentText indentation close
+                , Html.text close
                 ]
 
 
-renderList : Int -> List ElmType -> Html msg
-renderList indentation xs =
-    List.map (renderElmType indentation) xs
-        |> List.intersperse (indentText indentation ", ")
+renderList : List ElmType -> Html msg
+renderList xs =
+    List.map renderElmType xs
+        |> List.intersperse (Html.text ", ")
         |> Html.div []
 
 
-renderField : Int -> String -> ( String, ElmType ) -> Html msg
-renderField indentation prefix ( k, v ) =
+renderField : String -> ( String, ElmType ) -> Html msg
+renderField prefix ( k, v ) =
     Html.div []
-        [ indentText indentation (prefix ++ k ++ " = ")
-        , renderElmType (indentation) v
+        [ Html.text (prefix ++ k ++ " = ")
+        , renderElmType v
         ]
 
 
-renderListItem : Int -> Html msg -> Html msg
-renderListItem indentation item =
+renderListItem : Html msg -> Html msg
+renderListItem item =
     Html.div []
-        [ indentText indentation ", "
+        [ Html.text ", "
         , item
         ]
 
 
-indentText : Int -> String -> Html msg
-indentText indentation text =
-    [ List.repeat indentation nbsp
-    , [ Html.text text ]
-    ]
-        |> List.concat
-        |> Html.span []
+
+-- [ List.repeat indentation nbsp
+-- , [ Html.text text ]
+-- ]
+--     |> List.concat
+--     |> Html.span [ class "elm-render-visualizer-indentation" ]
 
 
 nbsp : Html msg
 nbsp =
     Html.span [ property "innerHTML" (string "&nbsp;&nbsp;&nbsp;&nbsp;") ] []
+
+
+indentBlock : List (Html msg) -> Html msg
+indentBlock children =
+    Html.div
+        [ style [ ( "padding-left", "2em" ) ]
+        ]
+        children
