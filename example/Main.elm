@@ -16,7 +16,15 @@ type Animal
 
 
 main =
-    beginnerProgram { model = { counter = 0, by = 1, animal = Bird }, view = view, update = update }
+    beginnerProgram
+        { model =
+            { counter = 0
+            , by = 1
+            , animals = [ Bird, Bird, Bird, Bird, Bird, Bird, Bird ]
+            }
+        , view = view
+        , update = update
+        }
 
 
 view model =
