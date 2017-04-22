@@ -332,26 +332,29 @@ elmTypeToTree log =
                 List.map elmTypeToTree args
 
 
-treeToText : Tree -> String
-treeToText t =
+treeToOneLine : Tree -> List (Html msg)
+treeToOneLine t =
     case t of
         ListItem string ->
-            string
+            [ Html.text string ]
 
         KeyValue ( k, v ) ->
-            k ++ " = " ++ treeToText v
+            List.concat
+                [ [ highlighted k ]
+                , [ Html.text " = " ]
+                , treeToOneLine v
+                ]
 
         Block { empty } [] ->
-            empty
+            [ Html.text empty ]
 
         Block { open, close, separator } xs ->
-            [ open
+            [ [ Html.text open ]
             , List.intersperse (ListItem separator) xs
-                |> List.map treeToText
-                |> String.concat
-            , close
+                |> List.concatMap treeToOneLine
+            , [ Html.text close ]
             ]
-                |> String.concat
+                |> List.concat
 
 
 treeToHtml : Tree -> Html msg
@@ -363,10 +366,7 @@ treeToHtml t =
         KeyValue ( k, v ) ->
             Html.span []
                 [ Html.span []
-                    [ Html.span
-                        [ style [ ( "color", "#c7f465" ) ]
-                        ]
-                        [ Html.text k ]
+                    [ highlighted k
                     , Html.span [] [ Html.text " = " ]
                     ]
                 , treeToHtml v
@@ -377,10 +377,18 @@ treeToHtml t =
                 [ class "elm-debug-view-collapsed"
                 , attribute "onclick" "_elmRenderVisualizerToggleCollapse(this);"
                 ]
-                [ Html.span [ class "elm-debug-view-text" ] [ Html.text <| treeToText t ]
+                [ Html.span [ class "elm-debug-view-text" ] <| treeToOneLine t
                 , renderItems blockData xs
                     |> Html.div [ class "elm-debug-view-detailed" ]
                 ]
+
+
+highlighted : String -> Html msg
+highlighted t =
+    Html.span
+        [ style [ ( "color", "#c7f465" ) ]
+        ]
+        [ Html.text t ]
 
 
 renderItems : BlockData -> List Tree -> List (Html msg)
