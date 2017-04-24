@@ -1,28 +1,96 @@
-module Debug.View exposing (inspect, inspect2)
+module Debug.View
+    exposing
+        ( inspect
+        , inspect2
+        , inspect3
+        , inspect4
+        , inspect5
+        , inspect6
+        , inspect7
+        , inspect8
+        )
+
+{-| # Debug.View
+
+Allows to inspect values passed to a view-function.
+
+@docs inspect, inspect2, inspect3, inspect4, inspect5, inspect6, inspect7, inspect8
+-}
 
 import Native.Debug.View
 import Html exposing (Html)
+import Html.Keyed exposing (node)
 import Html.Attributes exposing (style, id, attribute, property, class)
 
 
+inspectBase : String -> Html msg -> (String -> List ElmType) -> Html msg
+inspectBase identifier view nativeFunction =
+    contentSpan
+        (view :: (wrapper identifier <| nativeFunction identifier))
+
+
+{-| Inspect 1 value passed to a view-function.
+-}
 inspect : String -> (a -> Html msg) -> a -> Html msg
-inspect identifier view x =
-    contentSpan
-        (view x
-            :: (wrapper identifier <|
-                    Native.Debug.View.inspect x identifier
-               )
-        )
+inspect identifier view x1 =
+    inspectBase identifier (view x1) <|
+        Native.Debug.View.inspect x1
 
 
+{-| Inspect 2 value passed to a view-function.
+-}
 inspect2 : String -> (a -> b -> Html msg) -> a -> b -> Html msg
-inspect2 identifier view x y =
-    contentSpan
-        (view x y
-            :: (wrapper identifier <|
-                    Native.Debug.View.inspect2 x y identifier
-               )
-        )
+inspect2 identifier view x1 x2 =
+    inspectBase identifier (view x1 x2) <|
+        Native.Debug.View.inspect2 x1 x2
+
+
+{-| Inspect 3 value passed to a view-function.
+-}
+inspect3 : String -> (a -> b -> c -> Html msg) -> a -> b -> c -> Html msg
+inspect3 identifier view x1 x2 x3 =
+    inspectBase identifier (view x1 x2 x3) <|
+        Native.Debug.View.inspect3 x1 x2 x3
+
+
+{-| Inspect 4 value passed to a view-function.
+-}
+inspect4 : String -> (a -> b -> c -> d -> Html msg) -> a -> b -> c -> d -> Html msg
+inspect4 identifier view x1 x2 x3 x4 =
+    inspectBase identifier (view x1 x2 x3 x4) <|
+        Native.Debug.View.inspect4 x1 x2 x3 x4
+
+
+{-| Inspect 5 value passed to a view-function.
+-}
+inspect5 : String -> (a -> b -> c -> d -> e -> Html msg) -> a -> b -> c -> d -> e -> Html msg
+inspect5 identifier view x1 x2 x3 x4 x5 =
+    inspectBase identifier (view x1 x2 x3 x4 x5) <|
+        Native.Debug.View.inspect5 x1 x2 x3 x4 x5
+
+
+{-| Inspect 6 value passed to a view-function.
+-}
+inspect6 : String -> (a -> b -> c -> d -> e -> f -> Html msg) -> a -> b -> c -> d -> e -> f -> Html msg
+inspect6 identifier view x1 x2 x3 x4 x5 x6 =
+    inspectBase identifier (view x1 x2 x3 x4 x5 x6) <|
+        Native.Debug.View.inspect6 x1 x2 x3 x4 x5 x6
+
+
+{-| Inspect 7 value passed to a view-function.
+-}
+inspect7 : String -> (a -> b -> c -> d -> e -> f -> g -> Html msg) -> a -> b -> c -> d -> e -> f -> g -> Html msg
+inspect7 identifier view x1 x2 x3 x4 x5 x6 x7 =
+    inspectBase identifier (view x1 x2 x3 x4 x5 x6 x7) <|
+        Native.Debug.View.inspect7 x1 x2 x3 x4 x5 x6 x7
+
+
+{-| Inspect 8 value passed to a view-function.
+-}
+inspect8 : String -> (a -> b -> c -> d -> e -> f -> g -> h -> Html msg) -> a -> b -> c -> d -> e -> f -> g -> h -> Html msg
+inspect8 identifier view x1 x2 x3 x4 x5 x6 x7 x8 =
+    inspectBase identifier (view x1 x2 x3 x4 x5 x6 x7 x8) <|
+        Native.Debug.View.inspect8 x1 x2 x3 x4 x5 x6 x7 x8
 
 
 stylesheet : Html msg
@@ -84,6 +152,7 @@ contentSpan content =
         (stylesheet :: content)
 
 
+styles : { radius : String, border : String, inverse : Bool } -> List ( String, String )
 styles { radius, border, inverse } =
     [ ( "position", "absolute" )
     , ( "margin-top", "-10px" )
@@ -131,7 +200,7 @@ entries identifier history =
         [ closeButton identifier
         , List.indexedMap (entry identifier) history
             |> List.reverse
-            |> Html.div
+            |> node "div"
                 [ style
                     [ ( "overflow", "scroll" )
                     , ( "width", "100%" )
@@ -186,6 +255,29 @@ counter identifier index =
         [ Html.text <| toString index ]
 
 
+entry : String -> Int -> ElmType -> ( String, Html msg )
+entry identifier index log =
+    ( identifier ++ toString index
+    , Html.div
+        [ class "elm-debug-view-entry"
+        ]
+        [ Html.span
+            [ style
+                [ ( "display", "flex" )
+                , ( "opacity", ".5" )
+                ]
+            ]
+            [ Html.text (toString index), Html.hr [ style [ ( "flex", "1" ) ] ] [] ]
+        , renderElmType log
+        ]
+    )
+
+
+renderElmType : ElmType -> Html msg
+renderElmType =
+    elmTypeToTree >> treeToHtml
+
+
 type ElmType
     = ElmFunction String
     | ElmBoolean Bool
@@ -200,27 +292,6 @@ type ElmType
     | ElmString String
     | ElmCustom String
     | ElmUnionType String (List ElmType)
-
-
-entry : String -> Int -> ElmType -> Html msg
-entry identifier index log =
-    Html.div
-        [ class "elm-debug-view-entry"
-        ]
-        [ Html.span
-            [ style
-                [ ( "display", "flex" )
-                , ( "opacity", ".5" )
-                ]
-            ]
-            [ Html.text (toString index), Html.hr [ style [ ( "flex", "1" ) ] ] [] ]
-        , renderElmType log
-        ]
-
-
-renderElmType : ElmType -> Html msg
-renderElmType =
-    elmTypeToTree >> treeToHtml
 
 
 type Tree

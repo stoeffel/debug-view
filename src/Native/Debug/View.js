@@ -40,9 +40,33 @@ var _stoeffel$debug_view$Native_Debug_View = (function() {
   function inspect2(a, b, id) {
     return inspect([a, b], id);
   }
+  function inspect3(a, b, c, id) {
+    return inspect([a, b, c], id);
+  }
+  function inspect4(a, b, c, d, id) {
+    return inspect([a, b, c, d], id);
+  }
+  function inspect5(a, b, c, d, e, id) {
+    return inspect([a, b, c, d, e], id);
+  }
+  function inspect6(a, b, c, d, e, f, id) {
+    return inspect([a, b, c, d, e, f], id);
+  }
+  function inspect7(a, b, c, d, e, f, g, id) {
+    return inspect([a, b, c, d, e, f, g], id);
+  }
+  function inspect8(a, b, c, d, e, f, g, h, id) {
+    return inspect([a, b, c, d, e, f, g, h], id);
+  }
   return {
     inspect: F2(inspect),
-    inspect2: F3(inspect2)
+    inspect2: F3(inspect2),
+    inspect3: F4(inspect3),
+    inspect4: F5(inspect4),
+    inspect5: F6(inspect5),
+    inspect6: F7(inspect6),
+    inspect7: F8(inspect7),
+    inspect8: F9(inspect8)
   };
 
   // This is a modified version of toString from elm core: https://github.com/elm-lang/core/blob/3.0.0/src/Native/Utils.js#L358
