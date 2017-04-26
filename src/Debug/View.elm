@@ -30,6 +30,8 @@ inspectBase identifier view nativeFunction =
 
 
 {-| Inspect 1 value passed to a view-function.
+
+    Debug.View.inspect "id" (\x -> h1 [] [ text x ]) model.title
 -}
 inspect : String -> (a -> Html msg) -> a -> Html msg
 inspect identifier view x1 =
