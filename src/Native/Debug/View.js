@@ -2,6 +2,15 @@
 var _stoeffel$debug_view$Native_Debug_View = (function() {
   var log = {};
   var clickHandlers = {};
+  function createId() {
+    var id = "";
+    try {
+      throw Error();
+    } catch (e) {
+      id = e.stack + "";
+    }
+    return id;
+  }
   function inspect(a, id) {
     if (!log[id]) {
       log[id] = [];
@@ -66,7 +75,8 @@ var _stoeffel$debug_view$Native_Debug_View = (function() {
     inspect5: F6(inspect5),
     inspect6: F7(inspect6),
     inspect7: F8(inspect7),
-    inspect8: F9(inspect8)
+    inspect8: F9(inspect8),
+    createId: createId
   };
 
   // This is a modified version of toString from elm core: https://github.com/elm-lang/core/blob/3.0.0/src/Native/Utils.js#L358

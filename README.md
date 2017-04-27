@@ -26,6 +26,6 @@ title str nr =
 
 view model =
   -- ...
-    Debug.View.inspect2 "title" title model.title model.version
+    Debug.View.inspect2 title model.title model.version
   -- ...
 ```

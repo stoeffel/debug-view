@@ -49,9 +49,10 @@ view model =
             ]
         ]
         [ viewButton "-" Decrement
-        , Debug.View.inspect "counter" viewCounter model
+        , Debug.View.inspect viewCounter model
         , viewButton "+" Increment
-        , Debug.View.inspect "input" viewInput model.by
+        , Debug.View.inspect viewInput model.by
+        , Debug.View.inspect viewInput 0
         ]
 
 

@@ -23,75 +23,79 @@ import Html.Keyed exposing (node)
 import Html.Attributes exposing (style, id, attribute, property, class)
 
 
-inspectBase : String -> Html msg -> (String -> List ElmType) -> Html msg
-inspectBase identifier view nativeFunction =
-    contentSpan
-        (view :: (wrapper identifier <| nativeFunction identifier))
+inspectBase : Html msg -> (String -> List ElmType) -> Html msg
+inspectBase view nativeFunction =
+    let
+        identifier =
+            Native.Debug.View.createId ()
+    in
+        contentSpan
+            (view :: (wrapper identifier <| nativeFunction identifier))
 
 
 {-| Inspect 1 value passed to a view-function.
 
     Debug.View.inspect "id" (\x -> h1 [] [ text x ]) model.title
 -}
-inspect : String -> (a -> Html msg) -> a -> Html msg
-inspect identifier view x1 =
-    inspectBase identifier (view x1) <|
+inspect : (a -> Html msg) -> a -> Html msg
+inspect view x1 =
+    inspectBase (view x1) <|
         Native.Debug.View.inspect x1
 
 
 {-| Inspect 2 value passed to a view-function.
 -}
-inspect2 : String -> (a -> b -> Html msg) -> a -> b -> Html msg
-inspect2 identifier view x1 x2 =
-    inspectBase identifier (view x1 x2) <|
+inspect2 : (a -> b -> Html msg) -> a -> b -> Html msg
+inspect2 view x1 x2 =
+    inspectBase (view x1 x2) <|
         Native.Debug.View.inspect2 x1 x2
 
 
 {-| Inspect 3 value passed to a view-function.
 -}
-inspect3 : String -> (a -> b -> c -> Html msg) -> a -> b -> c -> Html msg
-inspect3 identifier view x1 x2 x3 =
-    inspectBase identifier (view x1 x2 x3) <|
+inspect3 : (a -> b -> c -> Html msg) -> a -> b -> c -> Html msg
+inspect3 view x1 x2 x3 =
+    inspectBase (view x1 x2 x3) <|
         Native.Debug.View.inspect3 x1 x2 x3
 
 
 {-| Inspect 4 value passed to a view-function.
 -}
-inspect4 : String -> (a -> b -> c -> d -> Html msg) -> a -> b -> c -> d -> Html msg
-inspect4 identifier view x1 x2 x3 x4 =
-    inspectBase identifier (view x1 x2 x3 x4) <|
+inspect4 : (a -> b -> c -> d -> Html msg) -> a -> b -> c -> d -> Html msg
+inspect4 view x1 x2 x3 x4 =
+    inspectBase (view x1 x2 x3 x4) <|
         Native.Debug.View.inspect4 x1 x2 x3 x4
 
 
 {-| Inspect 5 value passed to a view-function.
 -}
-inspect5 : String -> (a -> b -> c -> d -> e -> Html msg) -> a -> b -> c -> d -> e -> Html msg
-inspect5 identifier view x1 x2 x3 x4 x5 =
-    inspectBase identifier (view x1 x2 x3 x4 x5) <|
+inspect5 : (a -> b -> c -> d -> e -> Html msg) -> a -> b -> c -> d -> e -> Html msg
+inspect5 view x1 x2 x3 x4 x5 =
+    inspectBase (view x1 x2 x3 x4 x5) <|
         Native.Debug.View.inspect5 x1 x2 x3 x4 x5
 
 
 {-| Inspect 6 value passed to a view-function.
 -}
-inspect6 : String -> (a -> b -> c -> d -> e -> f -> Html msg) -> a -> b -> c -> d -> e -> f -> Html msg
-inspect6 identifier view x1 x2 x3 x4 x5 x6 =
-    inspectBase identifier (view x1 x2 x3 x4 x5 x6) <|
+inspect6 : (a -> b -> c -> d -> e -> f -> Html msg) -> a -> b -> c -> d -> e -> f -> Html msg
+inspect6 view x1 x2 x3 x4 x5 x6 =
+    inspectBase (view x1 x2 x3 x4 x5 x6) <|
         Native.Debug.View.inspect6 x1 x2 x3 x4 x5 x6
 
 
 {-| Inspect 7 value passed to a view-function.
 -}
-inspect7 : String -> (a -> b -> c -> d -> e -> f -> g -> Html msg) -> a -> b -> c -> d -> e -> f -> g -> Html msg
-inspect7 identifier view x1 x2 x3 x4 x5 x6 x7 =
-    inspectBase identifier (view x1 x2 x3 x4 x5 x6 x7) <|
+inspect7 : (a -> b -> c -> d -> e -> f -> g -> Html msg) -> a -> b -> c -> d -> e -> f -> g -> Html msg
+inspect7 view x1 x2 x3 x4 x5 x6 x7 =
+    inspectBase (view x1 x2 x3 x4 x5 x6 x7) <|
         Native.Debug.View.inspect7 x1 x2 x3 x4 x5 x6 x7
 
 
 {-| Inspect 8 value passed to a view-function.
 -}
-inspect8 : String -> (a -> b -> c -> d -> e -> f -> g -> h -> Html msg) -> a -> b -> c -> d -> e -> f -> g -> h -> Html msg
-inspect8 identifier view x1 x2 x3 x4 x5 x6 x7 x8 =
-    inspectBase identifier (view x1 x2 x3 x4 x5 x6 x7 x8) <|
+inspect8 : (a -> b -> c -> d -> e -> f -> g -> h -> Html msg) -> a -> b -> c -> d -> e -> f -> g -> h -> Html msg
+inspect8 view x1 x2 x3 x4 x5 x6 x7 x8 =
+    inspectBase (view x1 x2 x3 x4 x5 x6 x7 x8) <|
         Native.Debug.View.inspect8 x1 x2 x3 x4 x5 x6 x7 x8
 
 
